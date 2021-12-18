@@ -28,8 +28,8 @@ mod socium {
 pub mod action {
     use std::io;
 
-    pub trait UserAction {
-        fn execute(&self);
+    pub trait CharAction {
+        fn execute(&self, subject_id: u32);
     }
 
     #[derive(Debug)]
@@ -38,19 +38,19 @@ pub mod action {
     #[derive(Debug)]
     pub struct MoveSouth {}
 
-    impl UserAction for MoveNorth {
-        fn execute(&self) {
-            println!("Moving to the north...");
+    impl CharAction for MoveNorth {
+        fn execute(&self, subject_id: u32) {
+            println!("#{:?} moving to the north...", subject_id);
         }
     }
 
-    impl UserAction for MoveSouth {
-        fn execute(&self) {
-            println!("Moving to the south...");
+    impl CharAction for MoveSouth {
+        fn execute(&self, subject_id: u32) {
+            println!("#{:?} moving to the south...", subject_id);
         }
     }
 
-    pub fn ask_command() -> Box<dyn UserAction> {
+    pub fn ask_command() -> Box<dyn CharAction> {
         println!("Your action? ");
 
         let mut input = String::new();
@@ -62,7 +62,7 @@ pub mod action {
         command_to_action(input)
     }
 
-    fn command_to_action(input: String) -> Box<dyn UserAction> {
+    fn command_to_action(input: String) -> Box<dyn CharAction> {
         let mut words = input.split_whitespace();
         let command = words
             .next()

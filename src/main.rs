@@ -1,4 +1,4 @@
-use mud_jam_solo::action::{ask_command, UserAction};
+use mud_jam_solo::action::ask_command;
 
 fn main() {
     loop {
@@ -6,6 +6,6 @@ fn main() {
 
         // Ask user an action
         let command = ask_command();
-        command.execute();
+        command.execute(1);
     }
 }
