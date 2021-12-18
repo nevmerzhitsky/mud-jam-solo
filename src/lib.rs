@@ -1,11 +1,18 @@
-mod area {
+pub mod area {
     pub trait Object {
         fn get_id(&self) -> u32;
     }
 
+    #[derive(Debug)]
     pub struct World {
         id: u32,
         name: String,
+    }
+
+    impl World {
+        pub fn new(id: u32, name: String) -> World {
+            World { id, name }
+        }
     }
 
     impl Object for World {
@@ -28,8 +35,10 @@ mod socium {
 pub mod action {
     use std::io;
 
+    use crate::area::World;
+
     pub trait CharAction {
-        fn execute(&self, subject_id: u32);
+        fn execute(&self, w: &World, subject_id: u32);
     }
 
     #[derive(Debug)]
@@ -39,13 +48,13 @@ pub mod action {
     pub struct MoveSouth {}
 
     impl CharAction for MoveNorth {
-        fn execute(&self, subject_id: u32) {
+        fn execute(&self, _w: &World, subject_id: u32) {
             println!("#{:?} moving to the north...", subject_id);
         }
     }
 
     impl CharAction for MoveSouth {
-        fn execute(&self, subject_id: u32) {
+        fn execute(&self, _w: &World, subject_id: u32) {
             println!("#{:?} moving to the south...", subject_id);
         }
     }
