@@ -38,10 +38,7 @@ pub fn ask_command() -> Box<dyn CharAction> {
 
 fn command_to_action(input: String) -> Box<dyn CharAction> {
     let mut words = input.split_whitespace();
-    let command = words
-        .next()
-        .unwrap_or("")
-        .to_ascii_lowercase();
+    let command = words.next().unwrap_or("").to_ascii_lowercase();
     let params: Vec<&str> = words.collect();
 
     println!(">>> Command: \"{}\" {:?}", command, params);
