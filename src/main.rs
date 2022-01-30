@@ -11,7 +11,9 @@ fn main() {
         // Process events
 
         // Ask user an action
-        let command = action::ask_command();
-        command.execute(&world_a, 1);
+        match action::ask_command() {
+            Some(c) => c.execute(&world_a, 1),
+            None => println!("Unknown command!"),
+        }
     }
 }
