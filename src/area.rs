@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::fmt;
 use std::rc::Rc;
 use std::rc::Weak;
 
@@ -23,8 +24,8 @@ impl World {
     }
 
     pub fn feed_area(&mut self) {
-        let room1 = Rc::new(RefCell::new(Room::new_in_void(1)));
-        let room2 = Rc::new(RefCell::new(Room::new_in_void(2)));
+        let room1 = AreaRoom::new(RefCell::new(Room::new_in_void(1)));
+        let room2 = AreaRoom::new(RefCell::new(Room::new_in_void(2)));
 
         room1.borrow_mut().north_room = Option::from(Rc::downgrade(&room2));
         room1.borrow_mut().south_room = Option::from(Rc::downgrade(&room2));
@@ -49,7 +50,6 @@ impl Entity for World {
     }
 }
 
-#[derive(Debug)]
 pub struct Room {
     id: u32,
     // number: u32,
@@ -78,5 +78,28 @@ impl Room {
 impl Entity for Room {
     fn get_id(&self) -> u32 {
         self.id
+    }
+}
+
+impl fmt::Debug for Room {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn get_connection_caption(rc: &RoomConnection) -> String {
+            match rc {
+                None => "N".to_string(),
+                Some(r) => r.upgrade().unwrap().borrow().id.to_string(),
+            }
+        }
+
+        write!(
+            f,
+            "Room {{ id: {}, exists (NSWEUD): {}-{}-{}-{}-{}-{} }}",
+            self.id,
+            get_connection_caption(&self.north_room),
+            get_connection_caption(&self.south_room),
+            get_connection_caption(&self.west_room),
+            get_connection_caption(&self.east_room),
+            get_connection_caption(&self.up_room),
+            get_connection_caption(&self.down_room)
+        )
     }
 }

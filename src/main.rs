@@ -5,7 +5,7 @@ mod socium;
 fn main() {
     let mut world_a = area::World::new(1, "First world".to_string());
     world_a.feed_area();
-    println!(">>> world = {:?}", world_a);
+    println!(">>> world = {:#?}", world_a);
 
     loop {
         // Process events
