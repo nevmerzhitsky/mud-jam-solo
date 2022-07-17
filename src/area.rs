@@ -2,6 +2,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::rc::Weak;
 
+type AreaRoom = Rc<RefCell<Room>>;
+type RoomConnection = Option<Weak<RefCell<Room>>>;
+
 pub trait Entity {
     fn get_id(&self) -> u32;
 }
@@ -10,37 +13,33 @@ pub trait Entity {
 pub struct World {
     id: u32,
     name: String,
-    area: Vec<Rc<RefCell<Room>>>,
+    area: Vec<AreaRoom>,
 }
 
 impl World {
     pub fn new(id: u32, name: String) -> World {
-        let area: Vec<Rc<RefCell<Room>>> = Vec::new();
+        let area: Vec<AreaRoom> = Vec::new();
         World { id, name, area }
     }
 
     pub fn feed_area(&mut self) {
-        let r1 = Room::new_in_void(1);
-        let r2 = Room::new_in_void(2);
+        let room1 = Rc::new(RefCell::new(Room::new_in_void(1)));
+        let room2 = Rc::new(RefCell::new(Room::new_in_void(2)));
 
-        let r1_cell = RefCell::new(r1);
-        let r2_cell = RefCell::new(r2);
+        room1.borrow_mut().north_room = Option::from(Rc::downgrade(&room2));
+        room1.borrow_mut().south_room = Option::from(Rc::downgrade(&room2));
+        room1.borrow_mut().west_room = Option::from(Rc::downgrade(&room1));
+        room1.borrow_mut().east_room = Option::from(Rc::downgrade(&room1));
+        room1.borrow_mut().up_room = None;
+        room1.borrow_mut().down_room = None;
 
-        let r1_rc = Rc::new(r1_cell);
-        let r2_rc = Rc::new(r2_cell);
+        room2.borrow_mut().north_room = Option::from(Rc::downgrade(&room1));
+        room2.borrow_mut().south_room = Option::from(Rc::downgrade(&room1));
+        room2.borrow_mut().west_room = Option::from(Rc::downgrade(&room2));
+        room2.borrow_mut().east_room = Option::from(Rc::downgrade(&room2));
 
-        r1_rc.borrow_mut().north_room = Option::from(Rc::downgrade(&r2_rc));
-        r1_rc.borrow_mut().south_room = Option::from(Rc::downgrade(&r2_rc));
-        r1_rc.borrow_mut().west_room = Option::from(Rc::downgrade(&r1_rc));
-        r1_rc.borrow_mut().east_room = Option::from(Rc::downgrade(&r1_rc));
-
-        r2_rc.borrow_mut().north_room = Option::from(Rc::downgrade(&r1_rc));
-        r2_rc.borrow_mut().south_room = Option::from(Rc::downgrade(&r1_rc));
-        r2_rc.borrow_mut().west_room = Option::from(Rc::downgrade(&r2_rc));
-        r2_rc.borrow_mut().east_room = Option::from(Rc::downgrade(&r2_rc));
-
-        self.area.push(r1_rc);
-        self.area.push(r2_rc);
+        self.area.push(room1);
+        self.area.push(room2);
     }
 }
 
@@ -54,12 +53,12 @@ impl Entity for World {
 pub struct Room {
     id: u32,
     // number: u32,
-    north_room: Option<Weak<RefCell<Room>>>,
-    south_room: Option<Weak<RefCell<Room>>>,
-    west_room: Option<Weak<RefCell<Room>>>,
-    east_room: Option<Weak<RefCell<Room>>>,
-    up_room: Option<Weak<RefCell<Room>>>,
-    down_room: Option<Weak<RefCell<Room>>>,
+    north_room: RoomConnection,
+    south_room: RoomConnection,
+    west_room: RoomConnection,
+    east_room: RoomConnection,
+    up_room: RoomConnection,
+    down_room: RoomConnection,
 }
 
 impl Room {
