@@ -27,17 +27,21 @@ impl World {
         let room1 = AreaRoom::new(RefCell::new(Room::new_in_void(1)));
         let room2 = AreaRoom::new(RefCell::new(Room::new_in_void(2)));
 
-        room1.borrow_mut().north_room = Option::from(Rc::downgrade(&room2));
-        room1.borrow_mut().south_room = Option::from(Rc::downgrade(&room2));
-        room1.borrow_mut().west_room = Option::from(Rc::downgrade(&room1));
-        room1.borrow_mut().east_room = Option::from(Rc::downgrade(&room1));
-        room1.borrow_mut().up_room = None;
-        room1.borrow_mut().down_room = None;
+        {
+            let mut room_mut = RefCell::borrow_mut(&room1);
+            room_mut.north_room = Option::from(Rc::downgrade(&room2));
+            room_mut.south_room = Option::from(Rc::downgrade(&room2));
+            room_mut.west_room = Option::from(Rc::downgrade(&room1));
+            room_mut.east_room = Option::from(Rc::downgrade(&room1));
+        }
 
-        room2.borrow_mut().north_room = Option::from(Rc::downgrade(&room1));
-        room2.borrow_mut().south_room = Option::from(Rc::downgrade(&room1));
-        room2.borrow_mut().west_room = Option::from(Rc::downgrade(&room2));
-        room2.borrow_mut().east_room = Option::from(Rc::downgrade(&room2));
+        {
+            let mut room_mut = RefCell::borrow_mut(&room2);
+            room_mut.north_room = Option::from(Rc::downgrade(&room1));
+            room_mut.south_room = Option::from(Rc::downgrade(&room1));
+            room_mut.west_room = Option::from(Rc::downgrade(&room2));
+            room_mut.east_room = Option::from(Rc::downgrade(&room2));
+        }
 
         self.area.push(room1);
         self.area.push(room2);
