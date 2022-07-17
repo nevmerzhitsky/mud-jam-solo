@@ -10,10 +10,8 @@ fn main() {
     loop {
         // Process events
 
-        // Ask user an action
-        match action::ask_command() {
-            Some(c) => c.execute(&world_a, 1),
-            None => println!("Unknown command!"),
-        }
+        // Execute a user action
+        let command = action::ask_command();
+        command.execute(&world_a, 1);
     }
 }
