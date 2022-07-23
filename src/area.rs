@@ -89,7 +89,7 @@ impl fmt::Debug for Room {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fn get_connection_caption(rc: &RoomConnection) -> String {
             match rc {
-                None => "N".to_string(),
+                None => String::from("N"),
                 Some(r) => r.upgrade().unwrap().borrow().id.to_string(),
             }
         }

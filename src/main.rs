@@ -3,7 +3,7 @@ mod area;
 mod socium;
 
 fn main() {
-    let mut world_a = area::World::new(1, "First world".to_string());
+    let mut world_a = area::World::new(1, String::from("First world"));
     world_a.feed_area();
     println!(">>> world = {:#?}", world_a);
 
