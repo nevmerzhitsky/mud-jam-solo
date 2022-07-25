@@ -2,8 +2,7 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::{Rc, Weak};
 
-type AreaRoom = Rc<RefCell<Room>>;
-type RoomConnection = Weak<RefCell<Room>>;
+type RoomConnection = RefCell<Weak<Room>>;
 
 pub trait Entity {
     fn get_id(&self) -> u32;
@@ -13,34 +12,28 @@ pub trait Entity {
 pub struct World {
     id: u32,
     name: String,
-    area: Vec<AreaRoom>,
+    area: Vec<Rc<Room>>,
 }
 
 impl World {
     pub fn new(id: u32, name: String) -> World {
-        let area: Vec<AreaRoom> = Vec::new();
+        let area: Vec<Rc<Room>> = Vec::new();
         World { id, name, area }
     }
 
-    pub fn feed_area(&mut self) {
-        let room1 = AreaRoom::new(RefCell::new(Room::new_in_void(1)));
-        let room2 = AreaRoom::new(RefCell::new(Room::new_in_void(2)));
+    pub fn fill_area(&mut self) {
+        let room1 = Rc::new(Room::new_in_void(1));
+        let room2 = Rc::new(Room::new_in_void(2));
 
-        {
-            let mut room_mut = RefCell::borrow_mut(&room1);
-            room_mut.north_room = Rc::downgrade(&room2);
-            room_mut.south_room = Rc::downgrade(&room2);
-            room_mut.west_room = Rc::downgrade(&room1);
-            room_mut.east_room = Rc::downgrade(&room1);
-        }
+        *room1.north_room.borrow_mut() = Rc::downgrade(&room2);
+        *room1.south_room.borrow_mut() = Rc::downgrade(&room2);
+        *room1.west_room.borrow_mut() = Rc::downgrade(&room1);
+        *room1.east_room.borrow_mut() = Rc::downgrade(&room1);
 
-        {
-            let mut room_mut = RefCell::borrow_mut(&room2);
-            room_mut.north_room = Rc::downgrade(&room1);
-            room_mut.south_room = Rc::downgrade(&room1);
-            room_mut.west_room = Rc::downgrade(&room2);
-            room_mut.east_room = Rc::downgrade(&room2);
-        }
+        *room2.north_room.borrow_mut() = Rc::downgrade(&room1);
+        *room2.south_room.borrow_mut() = Rc::downgrade(&room1);
+        *room2.west_room.borrow_mut() = Rc::downgrade(&room2);
+        *room2.east_room.borrow_mut() = Rc::downgrade(&room2);
 
         self.area.push(room1);
         self.area.push(room2);
@@ -68,12 +61,12 @@ impl Room {
     pub fn new_in_void(id: u32) -> Room {
         Room {
             id,
-            north_room: Weak::new(),
-            south_room: Weak::new(),
-            east_room: Weak::new(),
-            west_room: Weak::new(),
-            up_room: Weak::new(),
-            down_room: Weak::new(),
+            north_room: RefCell::new(Weak::new()),
+            south_room: RefCell::new(Weak::new()),
+            east_room: RefCell::new(Weak::new()),
+            west_room: RefCell::new(Weak::new()),
+            up_room: RefCell::new(Weak::new()),
+            down_room: RefCell::new(Weak::new()),
         }
     }
 }
@@ -87,9 +80,9 @@ impl Entity for Room {
 impl fmt::Debug for Room {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fn get_connection_caption(rc: &RoomConnection) -> String {
-            match rc.upgrade() {
-                None => String::from("N"),
-                Some(r) => r.borrow().id.to_string(),
+            match rc.borrow().upgrade() {
+                None => String::from("X"),
+                Some(r) => r.id.to_string(),
             }
         }
 
