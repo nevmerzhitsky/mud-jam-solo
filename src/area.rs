@@ -1,10 +1,9 @@
 use std::cell::RefCell;
 use std::fmt;
-use std::rc::Rc;
-use std::rc::Weak;
+use std::rc::{Rc, Weak};
 
 type AreaRoom = Rc<RefCell<Room>>;
-type RoomConnection = Option<Weak<RefCell<Room>>>;
+type RoomConnection = Weak<RefCell<Room>>;
 
 pub trait Entity {
     fn get_id(&self) -> u32;
@@ -29,18 +28,18 @@ impl World {
 
         {
             let mut room_mut = RefCell::borrow_mut(&room1);
-            room_mut.north_room = Option::from(Rc::downgrade(&room2));
-            room_mut.south_room = Option::from(Rc::downgrade(&room2));
-            room_mut.west_room = Option::from(Rc::downgrade(&room1));
-            room_mut.east_room = Option::from(Rc::downgrade(&room1));
+            room_mut.north_room = Rc::downgrade(&room2);
+            room_mut.south_room = Rc::downgrade(&room2);
+            room_mut.west_room = Rc::downgrade(&room1);
+            room_mut.east_room = Rc::downgrade(&room1);
         }
 
         {
             let mut room_mut = RefCell::borrow_mut(&room2);
-            room_mut.north_room = Option::from(Rc::downgrade(&room1));
-            room_mut.south_room = Option::from(Rc::downgrade(&room1));
-            room_mut.west_room = Option::from(Rc::downgrade(&room2));
-            room_mut.east_room = Option::from(Rc::downgrade(&room2));
+            room_mut.north_room = Rc::downgrade(&room1);
+            room_mut.south_room = Rc::downgrade(&room1);
+            room_mut.west_room = Rc::downgrade(&room2);
+            room_mut.east_room = Rc::downgrade(&room2);
         }
 
         self.area.push(room1);
@@ -69,12 +68,12 @@ impl Room {
     pub fn new_in_void(id: u32) -> Room {
         Room {
             id,
-            north_room: None,
-            south_room: None,
-            east_room: None,
-            west_room: None,
-            up_room: None,
-            down_room: None,
+            north_room: Weak::new(),
+            south_room: Weak::new(),
+            east_room: Weak::new(),
+            west_room: Weak::new(),
+            up_room: Weak::new(),
+            down_room: Weak::new(),
         }
     }
 }
@@ -88,9 +87,9 @@ impl Entity for Room {
 impl fmt::Debug for Room {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fn get_connection_caption(rc: &RoomConnection) -> String {
-            match rc {
+            match rc.upgrade() {
                 None => String::from("N"),
-                Some(r) => r.upgrade().unwrap().borrow().id.to_string(),
+                Some(r) => r.borrow().id.to_string(),
             }
         }
 
