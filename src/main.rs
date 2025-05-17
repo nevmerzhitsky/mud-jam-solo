@@ -11,7 +11,7 @@ fn main() {
         // Process events
 
         // Execute a user action
-        let command = action::ask_command();
+        let command = action::ask_command_as_action();
         command.execute(&world_a, 1);
     }
 }
