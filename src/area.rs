@@ -72,6 +72,24 @@ impl World {
 
         first.clone()
     }
+
+    pub fn spawn_player_character(&mut self, player: Player, char: Character) -> &PlayerRef {
+        // TODO Choose a proper room for the spawn: the room of exit or all players hub.
+        let spawn_room = self.get_any_room();
+
+        let char_a_id = self.add_character(char);
+        let player_a_id = self.add_player(player);
+
+        let char_a = self.get_character(char_a_id).unwrap();
+        char_a.borrow_mut().set_current_room(spawn_room.clone());
+
+        let player_a = self.get_player(player_a_id).unwrap();
+        player_a.borrow_mut().set_main_char(char_a.clone());
+
+        // TODO Add &char to the room's list.
+
+        player_a
+    }
 }
 
 impl Entity for World {
