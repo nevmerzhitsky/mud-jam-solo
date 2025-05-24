@@ -30,7 +30,7 @@ impl World {
     }
 
     pub fn add_character(&mut self, char: Character) -> u32 {
-        let id = char.id;
+        let id = char.get_id();
         self.characters.insert(id, Rc::new(RefCell::new(char)));
 
         id
@@ -41,7 +41,7 @@ impl World {
     }
 
     pub fn add_player(&mut self, player: Player) -> u32 {
-        let id = player.id;
+        let id = player.get_id();
         self.players.insert(id, Rc::new(RefCell::new(player)));
 
         id

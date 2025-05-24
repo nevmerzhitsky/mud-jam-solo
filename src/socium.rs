@@ -4,8 +4,8 @@ use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Character {
-    pub id: u32,
-    pub current_room: Option<Rc<Room>>,
+    id: u32,
+    current_room: Option<Rc<Room>>,
 }
 
 impl Character {
@@ -15,6 +15,10 @@ impl Character {
             // id_cell,
             current_room: None,
         }
+    }
+
+    pub fn get_id(&self) -> u32 {
+        self.id
     }
 
     pub fn set_current_room(&mut self, start_room: Rc<Room>) {
@@ -32,8 +36,8 @@ pub type CharacterRef = Rc<RefCell<Character>>;
 
 #[derive(Debug)]
 pub struct Player {
-    pub id: u32,
-    pub main_char: Option<CharacterRef>,
+    id: u32,
+    main_char: Option<CharacterRef>,
 }
 
 impl Player {
@@ -42,6 +46,10 @@ impl Player {
             id,
             main_char: None,
         }
+    }
+
+    pub fn get_id(&self) -> u32 {
+        self.id
     }
 
     pub fn set_main_char(&mut self, char_a: CharacterRef) {
