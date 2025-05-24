@@ -1,4 +1,6 @@
+use crate::socium::{Character, CharacterRef, Player, PlayerRef};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::{Rc, Weak};
@@ -11,13 +13,42 @@ pub trait Entity {
 pub struct World {
     id: u32,
     name: String,
+    characters: HashMap<u32, CharacterRef>,
+    players: HashMap<u32, PlayerRef>,
     area: Vec<Rc<Room>>,
 }
 
 impl World {
-    pub fn new(id: u32, name: String) -> World {
-        let area: Vec<Rc<Room>> = Vec::new();
-        World { id, name, area }
+    pub fn new(id: u32, name: String) -> Self {
+        Self {
+            id,
+            name,
+            characters: HashMap::new(),
+            players: HashMap::new(),
+            area: Vec::new(),
+        }
+    }
+
+    pub fn add_character(&mut self, char: Character) -> u32 {
+        let id = char.id;
+        self.characters.insert(id, Rc::new(RefCell::new(char)));
+
+        id
+    }
+
+    pub fn get_character(&self, id: u32) -> Option<&CharacterRef> {
+        self.characters.get(&id)
+    }
+
+    pub fn add_player(&mut self, player: Player) -> u32 {
+        let id = player.id;
+        self.players.insert(id, Rc::new(RefCell::new(player)));
+
+        id
+    }
+
+    pub fn get_player(&self, id: u32) -> Option<&PlayerRef> {
+        self.players.get(&id)
     }
 
     pub fn fill_area(&mut self) {
@@ -35,11 +66,27 @@ impl World {
         self.area.push(room1);
         self.area.push(room2);
     }
+
+    pub fn get_any_room(&self) -> Rc<Room> {
+        let first = self.area.first().unwrap();
+
+        first.clone()
+    }
 }
 
 impl Entity for World {
     fn get_id(&self) -> u32 {
         self.id
+    }
+}
+
+impl fmt::Debug for World {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("World")
+            .field("id", &self.id)
+            .field("name", &self.name)
+            .field("area", &self.area)
+            .finish()
     }
 }
 
@@ -93,7 +140,7 @@ impl fmt::Debug for Room {
 
         write!(
             f,
-            "Room {{ id: {}, exists (NSWEUD): {}-{}-{}-{}-{}-{} }}",
+            "Room {{ id: {}, exits (NSWEUD): {}-{}-{}-{}-{}-{} }}",
             self.id,
             get_exit_caption(&self.north_exit),
             get_exit_caption(&self.south_exit),
