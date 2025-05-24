@@ -68,9 +68,10 @@ impl World {
     }
 
     pub fn get_any_room(&self) -> Rc<Room> {
-        let first = self.area.first().unwrap();
-
-        first.clone()
+        match self.area.first() {
+            None => panic!("No rooms in the area"),
+            Some(r) => r.clone(),
+        }
     }
 
     pub fn spawn_player_character(&mut self, player: Player, char: Character) -> &PlayerRef {
@@ -143,6 +144,14 @@ impl Entity for Room {
         self.id
     }
 }
+
+impl PartialEq for Room {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for Room {}
 
 impl fmt::Debug for Room {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

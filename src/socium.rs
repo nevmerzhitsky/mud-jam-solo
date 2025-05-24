@@ -30,6 +30,14 @@ impl Character {
     }
 }
 
+impl PartialEq for Character {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for Character {}
+
 pub type CharacterRef = Rc<RefCell<Character>>;
 
 // ----------------------------------------------------------------------------------------------------
@@ -60,5 +68,13 @@ impl Player {
         self.main_char = None;
     }
 }
+
+impl PartialEq for Player {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for Player {}
 
 pub type PlayerRef = Rc<RefCell<Player>>;
