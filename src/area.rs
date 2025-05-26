@@ -9,7 +9,6 @@ pub trait Entity {
     fn get_id(&self) -> u32;
 }
 
-#[derive(Debug)]
 pub struct World {
     id: u32,
     name: String,
