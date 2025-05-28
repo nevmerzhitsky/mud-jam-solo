@@ -1,4 +1,4 @@
-use crate::socium::{Character, CharacterRef, Player, PlayerRef};
+use crate::socium::{Character, CharacterRef};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
@@ -13,7 +13,6 @@ pub struct World {
     id: u32,
     name: String,
     characters: HashMap<u32, CharacterRef>,
-    players: HashMap<u32, PlayerRef>,
     area: Vec<Rc<Room>>,
 }
 
@@ -23,9 +22,12 @@ impl World {
             id,
             name,
             characters: HashMap::new(),
-            players: HashMap::new(),
             area: Vec::new(),
         }
+    }
+
+    pub fn get_id(&self) -> u32 {
+        self.id
     }
 
     pub fn add_character(&mut self, char: Character) -> u32 {
@@ -37,17 +39,6 @@ impl World {
 
     pub fn get_character(&self, id: u32) -> Option<&CharacterRef> {
         self.characters.get(&id)
-    }
-
-    pub fn add_player(&mut self, player: Player) -> u32 {
-        let id = player.get_id();
-        self.players.insert(id, Rc::new(RefCell::new(player)));
-
-        id
-    }
-
-    pub fn get_player(&self, id: u32) -> Option<&PlayerRef> {
-        self.players.get(&id)
     }
 
     pub fn fill_area(&mut self) {
@@ -73,22 +64,17 @@ impl World {
         }
     }
 
-    pub fn spawn_player_character(&mut self, player: Player, char: Character) -> &PlayerRef {
+    pub fn spawn_character(&mut self, mut char: Character) -> u32 {
         // TODO Choose a proper room for the spawn: the room of exit or all players hub.
         let spawn_room = self.get_any_room();
 
-        let char_a_id = self.add_character(char);
-        let player_a_id = self.add_player(player);
+        char.set_current_room(spawn_room.clone());
 
-        let char_a = self.get_character(char_a_id).unwrap();
-        char_a.borrow_mut().set_current_room(spawn_room.clone());
-
-        let player_a = self.get_player(player_a_id).unwrap();
-        player_a.borrow_mut().set_main_char(char_a.clone());
+        let char_id = self.add_character(char);
 
         // TODO Add &char to the room's list.
 
-        player_a
+        char_id
     }
 }
 

@@ -60,8 +60,12 @@ impl Player {
         self.id
     }
 
-    pub fn set_main_char(&mut self, char_a: CharacterRef) {
-        self.main_char = Some(char_a);
+    pub fn get_main_char(&self) -> &Option<CharacterRef> {
+        &self.main_char
+    }
+
+    pub fn set_main_char(&mut self, char: CharacterRef) {
+        self.main_char = Some(char);
     }
 
     pub fn unset_main_char(&mut self) {
