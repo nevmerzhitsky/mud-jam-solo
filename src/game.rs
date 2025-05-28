@@ -1,13 +1,13 @@
 use std::cell::RefCell;
 use crate::action::WorldAction;
-use crate::area::World;
-use crate::socium::{Character, Player, PlayerRef};
+use crate::area::{World, WorldId};
+use crate::socium::{Character, Player, PlayerId, PlayerRef};
 use std::collections::{HashMap, VecDeque};
 use std::rc::Rc;
 
 pub struct Game {
-    worlds: HashMap<u32, World>,
-    players: HashMap<u32, PlayerRef>,
+    worlds: HashMap<WorldId, World>,
+    players: HashMap<PlayerId, PlayerRef>,
     actions_queue: VecDeque<WorldAction>,
 }
 
@@ -20,33 +20,33 @@ impl Game {
         }
     }
 
-    pub fn add_world(&mut self, world: World) -> u32 {
+    pub fn add_world(&mut self, world: World) -> WorldId {
         let id = world.get_id();
         self.worlds.insert(id, world);
 
         id
     }
 
-    pub fn get_world(&self, id: u32) -> Option<&World> {
+    pub fn get_world(&self, id: WorldId) -> Option<&World> {
         self.worlds.get(&id)
     }
 
-    pub fn get_world_mut(&mut self, id: u32) -> Option<&mut World> {
+    pub fn get_world_mut(&mut self, id: WorldId) -> Option<&mut World> {
         self.worlds.get_mut(&id)
     }
 
-    pub fn add_player(&mut self, player: Player) -> u32 {
+    pub fn add_player(&mut self, player: Player) -> PlayerId {
         let id = player.get_id();
         self.players.insert(id, Rc::new(RefCell::new(player)));
 
         id
     }
 
-    pub fn get_player(&self, id: u32) -> Option<&PlayerRef> {
+    pub fn get_player(&self, id: PlayerId) -> Option<&PlayerRef> {
         self.players.get(&id)
     }
 
-    pub fn spawn_player_character(&mut self, world_id: u32, player_id: u32, character: Character) {
+    pub fn spawn_player_character(&mut self, world_id: WorldId, player_id: PlayerId, character: Character) {
         let world = self.get_world_mut(world_id).unwrap();
         let char_id = world.spawn_character(character);
 

@@ -1,5 +1,6 @@
+use crate::area::WorldId;
 use crate::game::Game;
-use crate::socium::{Character, Player};
+use crate::socium::{Character, CharacterId, Player, PlayerId};
 
 mod action;
 mod area;
@@ -9,14 +10,14 @@ mod socium;
 fn main() {
     let mut game = Game::new();
 
-    let mut world_a = area::World::new(1, String::from("First world"));
+    let mut world_a = area::World::new(WorldId::from(1), String::from("First world"));
     world_a.fill_area();
     println!(">>> world = {:#?}", world_a);
 
     let world_a_id = game.add_world(world_a);
 
-    let char_a = Character::new(11);
-    let player_a = Player::new(21);
+    let char_a = Character::new(CharacterId::from(11));
+    let player_a = Player::new(PlayerId::from(21));
     println!(">>> player_a in VOID = {:#?}", player_a);
 
     let player_a_id = game.add_player(player_a);

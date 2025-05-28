@@ -1,23 +1,29 @@
-use crate::socium::{Character, CharacterRef};
+use crate::socium::{Character, CharacterId, CharacterRef};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::{Rc, Weak};
+use derive_more::{Display, From};
 
-pub trait Entity {
-    fn get_id(&self) -> u32;
+pub trait Entity {}
+
+pub trait Teleportable {
+    fn move_from_to(&self, from: &Room, to: &Room) -> bool;
 }
 
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, From)]
+pub struct WorldId(u32);
+
 pub struct World {
-    id: u32,
+    id: WorldId,
     name: String,
-    characters: HashMap<u32, CharacterRef>,
+    characters: HashMap<CharacterId, CharacterRef>,
     area: Vec<Rc<Room>>,
 }
 
 impl World {
-    pub fn new(id: u32, name: String) -> Self {
+    pub fn new(id: WorldId, name: String) -> Self {
         Self {
             id,
             name,
@@ -26,24 +32,24 @@ impl World {
         }
     }
 
-    pub fn get_id(&self) -> u32 {
+    pub fn get_id(&self) -> WorldId {
         self.id
     }
 
-    pub fn add_character(&mut self, char: Character) -> u32 {
+    pub fn add_character(&mut self, char: Character) -> CharacterId {
         let id = char.get_id();
         self.characters.insert(id, Rc::new(RefCell::new(char)));
 
         id
     }
 
-    pub fn get_character(&self, id: u32) -> Option<&CharacterRef> {
+    pub fn get_character(&self, id: CharacterId) -> Option<&CharacterRef> {
         self.characters.get(&id)
     }
 
     pub fn fill_area(&mut self) {
-        let room1 = Rc::new(Room::new_in_void(1));
-        let room2 = Rc::new(Room::new_in_void(2));
+        let room1 = Rc::new(Room::new_in_void(RoomId::from(1)));
+        let room2 = Rc::new(Room::new_in_void(RoomId::from(2)));
 
         *room1.north_exit.borrow_mut() = RoomExit::Pathway(Rc::downgrade(&room2));
         *room1.south_exit.borrow_mut() = RoomExit::Pathway(Rc::downgrade(&room2));
@@ -64,7 +70,7 @@ impl World {
         }
     }
 
-    pub fn spawn_character(&mut self, mut char: Character) -> u32 {
+    pub fn spawn_character(&mut self, mut char: Character) -> CharacterId {
         // TODO Choose a proper room for the spawn: the room of exit or all players hub.
         let spawn_room = self.get_any_room();
 
@@ -75,12 +81,6 @@ impl World {
         // TODO Add &char to the room's list.
 
         char_id
-    }
-}
-
-impl Entity for World {
-    fn get_id(&self) -> u32 {
-        self.id
     }
 }
 
@@ -99,9 +99,11 @@ pub enum RoomExit {
     Pathway(Weak<Room>),
 }
 
+#[derive(Debug, Display, PartialEq, Eq, Hash, Clone, Copy, From)]
+pub struct RoomId(u32);
+
 pub struct Room {
-    id: u32,
-    // number: u32,
+    id: RoomId,
     north_exit: RefCell<RoomExit>,
     south_exit: RefCell<RoomExit>,
     west_exit: RefCell<RoomExit>,
@@ -111,7 +113,7 @@ pub struct Room {
 }
 
 impl Room {
-    pub fn new_in_void(id: u32) -> Room {
+    pub fn new_in_void(id: RoomId) -> Room {
         Room {
             id,
             north_exit: RefCell::new(RoomExit::DeadEnd),
@@ -122,10 +124,8 @@ impl Room {
             down_exit: RefCell::new(RoomExit::DeadEnd),
         }
     }
-}
 
-impl Entity for Room {
-    fn get_id(&self) -> u32 {
+    fn get_id(&self) -> RoomId {
         self.id
     }
 }

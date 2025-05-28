@@ -1,15 +1,19 @@
 use crate::area::Room;
 use std::cell::RefCell;
 use std::rc::Rc;
+use derive_more::From;
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, From)]
+pub struct CharacterId(u32);
 
 #[derive(Debug)]
 pub struct Character {
-    id: u32,
+    id: CharacterId,
     current_room: Option<Rc<Room>>,
 }
 
 impl Character {
-    pub fn new(id: u32) -> Self {
+    pub fn new(id: CharacterId) -> Self {
         Self {
             id,
             // id_cell,
@@ -17,7 +21,7 @@ impl Character {
         }
     }
 
-    pub fn get_id(&self) -> u32 {
+    pub fn get_id(&self) -> CharacterId {
         self.id
     }
 
@@ -42,21 +46,24 @@ pub type CharacterRef = Rc<RefCell<Character>>;
 
 // ----------------------------------------------------------------------------------------------------
 
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, From)]
+pub struct PlayerId(u32);
+
 #[derive(Debug)]
 pub struct Player {
-    id: u32,
+    id: PlayerId,
     main_char: Option<CharacterRef>,
 }
 
 impl Player {
-    pub fn new(id: u32) -> Self {
+    pub fn new(id: PlayerId) -> Self {
         Self {
             id,
             main_char: None,
         }
     }
 
-    pub fn get_id(&self) -> u32 {
+    pub fn get_id(&self) -> PlayerId {
         self.id
     }
 
