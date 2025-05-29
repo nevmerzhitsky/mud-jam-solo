@@ -1,6 +1,6 @@
 use crate::action::WorldAction;
 use crate::area::{World, WorldId};
-use crate::socium::{Character, Player, PlayerId, PlayerRef};
+use crate::socium::{Character, CharacterId, Player, PlayerId, PlayerRef};
 use std::collections::{HashMap, VecDeque};
 use mud_jam_solo::BuildRef;
 
@@ -49,11 +49,30 @@ impl Game {
         let world = self.get_world_mut(world_id).unwrap();
         let char_id = world.spawn_character(character);
 
+        self.set_player_character(world_id, player_id, char_id);
+    }
+
+    pub fn set_player_character(&mut self, world_id: WorldId, player_id: PlayerId, char_id: CharacterId) {
+        let world = self.get_world(world_id).unwrap();
+
         let char = world.get_character(char_id).unwrap();
         let char_ref = char.clone();
 
         let player = self.get_player(player_id).unwrap();
+        let player_ref = player.clone();
+
         player.borrow_mut().set_main_char(char_ref);
+        char.borrow_mut().set_owner(player_ref);
+    }
+
+    pub fn unset_player_character(&mut self, world_id: WorldId, player_id: PlayerId, char_id: CharacterId) {
+        let world = self.get_world(world_id).unwrap();
+
+        let char = world.get_character(char_id).unwrap();
+        let player = self.get_player(player_id).unwrap();
+
+        player.borrow_mut().unset_main_char();
+        char.borrow_mut().unset_owner();
     }
 
     pub fn queue_action(&mut self, action: WorldAction) {

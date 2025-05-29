@@ -10,6 +10,7 @@ pub struct CharacterId(u32);
 #[derive(Debug)]
 pub struct Character {
     id: CharacterId,
+    owner: Option<PlayerRef>,
     current_room: Option<Rc<Room>>,
 }
 
@@ -17,13 +18,29 @@ impl Character {
     pub fn new(id: CharacterId) -> Self {
         Self {
             id,
-            // id_cell,
+            owner: None,
             current_room: None,
         }
     }
 
     pub fn get_id(&self) -> CharacterId {
         self.id
+    }
+
+    pub fn get_owner(&self) -> &Option<PlayerRef> {
+        &self.owner
+    }
+
+    pub fn set_owner(&mut self, owner: PlayerRef) {
+        self.owner = Some(owner);
+    }
+
+    pub fn unset_owner(&mut self) {
+        self.owner = None;
+    }
+
+    pub fn get_current_room(&self) -> &Option<Rc<Room>> {
+        &self.current_room
     }
 
     pub fn set_current_room(&mut self, start_room: Rc<Room>) {
