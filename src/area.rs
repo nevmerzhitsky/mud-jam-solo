@@ -5,6 +5,7 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::{Rc, Weak};
 use derive_more::{Display, From};
+use mud_jam_solo::BuildRef;
 
 pub trait Entity {}
 
@@ -38,7 +39,7 @@ impl World {
 
     pub fn add_character(&mut self, char: Character) -> CharacterId {
         let id = char.get_id();
-        self.characters.insert(id, Rc::new(RefCell::new(char)));
+        self.characters.insert(id, char.build_ref());
 
         id
     }

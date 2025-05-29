@@ -1,9 +1,8 @@
-use std::cell::RefCell;
 use crate::action::WorldAction;
 use crate::area::{World, WorldId};
 use crate::socium::{Character, Player, PlayerId, PlayerRef};
 use std::collections::{HashMap, VecDeque};
-use std::rc::Rc;
+use mud_jam_solo::BuildRef;
 
 pub struct Game {
     worlds: HashMap<WorldId, World>,
@@ -37,7 +36,7 @@ impl Game {
 
     pub fn add_player(&mut self, player: Player) -> PlayerId {
         let id = player.get_id();
-        self.players.insert(id, Rc::new(RefCell::new(player)));
+        self.players.insert(id, player.build_ref());
 
         id
     }

@@ -2,6 +2,7 @@ use crate::area::Room;
 use std::cell::RefCell;
 use std::rc::Rc;
 use derive_more::From;
+use mud_jam_solo::BuildRef;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, From)]
 pub struct CharacterId(u32);
@@ -41,6 +42,12 @@ impl PartialEq for Character {
 }
 
 impl Eq for Character {}
+
+impl BuildRef for Character {
+    fn build_ref(self) -> CharacterRef {
+        Rc::new(RefCell::new(self))
+    }
+}
 
 pub type CharacterRef = Rc<RefCell<Character>>;
 
@@ -87,5 +94,11 @@ impl PartialEq for Player {
 }
 
 impl Eq for Player {}
+
+impl BuildRef for Player {
+    fn build_ref(self) -> PlayerRef {
+        Rc::new(RefCell::new(self))
+    }
+}
 
 pub type PlayerRef = Rc<RefCell<Player>>;
