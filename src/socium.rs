@@ -1,8 +1,9 @@
-use crate::area::Room;
+use derive_more::From;
 use std::cell::RefCell;
 use std::rc::Rc;
-use derive_more::From;
-use mud_jam_solo::BuildRef;
+
+use crate::area::Room;
+use crate::utils::BuildRef;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, From)]
 pub struct CharacterId(u32);

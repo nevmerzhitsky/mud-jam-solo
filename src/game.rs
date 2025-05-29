@@ -1,8 +1,9 @@
+use std::collections::{HashMap, VecDeque};
+
 use crate::action::WorldAction;
 use crate::area::{World, WorldId};
 use crate::socium::{Character, CharacterId, Player, PlayerId, PlayerRef};
-use std::collections::{HashMap, VecDeque};
-use mud_jam_solo::BuildRef;
+use crate::utils::BuildRef;
 
 pub struct Game {
     worlds: HashMap<WorldId, World>,
@@ -45,14 +46,24 @@ impl Game {
         self.players.get(&id)
     }
 
-    pub fn spawn_player_character(&mut self, world_id: WorldId, player_id: PlayerId, character: Character) {
+    pub fn spawn_player_character(
+        &mut self,
+        world_id: WorldId,
+        player_id: PlayerId,
+        character: Character,
+    ) {
         let world = self.get_world_mut(world_id).unwrap();
         let char_id = world.spawn_character(character);
 
         self.set_player_character(world_id, player_id, char_id);
     }
 
-    pub fn set_player_character(&mut self, world_id: WorldId, player_id: PlayerId, char_id: CharacterId) {
+    pub fn set_player_character(
+        &mut self,
+        world_id: WorldId,
+        player_id: PlayerId,
+        char_id: CharacterId,
+    ) {
         let world = self.get_world(world_id).unwrap();
 
         let char = world.get_character(char_id).unwrap();
@@ -65,7 +76,12 @@ impl Game {
         char.borrow_mut().set_owner(player_ref);
     }
 
-    pub fn unset_player_character(&mut self, world_id: WorldId, player_id: PlayerId, char_id: CharacterId) {
+    pub fn unset_player_character(
+        &mut self,
+        world_id: WorldId,
+        player_id: PlayerId,
+        char_id: CharacterId,
+    ) {
         let world = self.get_world(world_id).unwrap();
 
         let char = world.get_character(char_id).unwrap();

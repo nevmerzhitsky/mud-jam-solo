@@ -1,11 +1,12 @@
-use crate::socium::{Character, CharacterId, CharacterRef};
+use derive_more::{Display, From};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::{Rc, Weak};
-use derive_more::{Display, From};
-use mud_jam_solo::BuildRef;
+
+use crate::socium::{Character, CharacterId, CharacterRef};
+use crate::utils::BuildRef;
 
 pub trait Entity {}
 

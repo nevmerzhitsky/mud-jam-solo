@@ -1,11 +1,12 @@
-use crate::area::WorldId;
-use crate::game::Game;
-use crate::socium::{Character, CharacterId, Player, PlayerId};
-
 mod action;
 mod area;
 mod game;
 mod socium;
+mod utils;
+
+use crate::area::WorldId;
+use crate::game::Game;
+use crate::socium::{Character, CharacterId, Player, PlayerId};
 
 fn main() {
     let mut game = Game::new();
