@@ -1,13 +1,13 @@
 use std::io;
 
-use crate::area::World;
+use crate::area::WorldRef;
 
 // ----------------------------------------------------------------------------------------------------
 // Commands via traits
 // ----------------------------------------------------------------------------------------------------
 
 pub trait CharAction {
-    fn execute(&self, w: &World, subject_id: u32);
+    fn execute(&self, w: &WorldRef, subject_id: u32);
 }
 
 #[derive(Debug)]
@@ -31,35 +31,35 @@ pub struct Say {
 }
 
 impl CharAction for UnknownCommand {
-    fn execute(&self, _w: &World, _subject_id: u32) {
+    fn execute(&self, _w: &WorldRef, _subject_id: u32) {
         println!("Unknown command")
     }
 }
 
 impl CharAction for Empty {
-    fn execute(&self, _w: &World, _subject_id: u32) {}
+    fn execute(&self, _w: &WorldRef, _subject_id: u32) {}
 }
 
 impl CharAction for Quit {
-    fn execute(&self, _w: &World, _subject_id: u32) {
+    fn execute(&self, _w: &WorldRef, _subject_id: u32) {
         panic!("You decided to quit")
     }
 }
 
 impl CharAction for MoveNorth {
-    fn execute(&self, _w: &World, subject_id: u32) {
+    fn execute(&self, _w: &WorldRef, subject_id: u32) {
         println!("#{:?} moving to the north...", subject_id);
     }
 }
 
 impl CharAction for MoveSouth {
-    fn execute(&self, _w: &World, subject_id: u32) {
+    fn execute(&self, _w: &WorldRef, subject_id: u32) {
         println!("#{:?} moving to the south...", subject_id);
     }
 }
 
 impl CharAction for Say {
-    fn execute(&self, _w: &World, _subject_id: u32) {
+    fn execute(&self, _w: &WorldRef, _subject_id: u32) {
         println!("SAY: {:?}", self.params);
     }
 }
@@ -113,7 +113,7 @@ pub enum Command {
 }
 
 impl Command {
-    pub fn execute(&self, _w: &World, _subject_id: u32) {
+    pub fn execute(&self, _w: &WorldRef, _subject_id: u32) {
         print!("command: ");
         match self {
             Command::UnknownCommand => println!("u"),

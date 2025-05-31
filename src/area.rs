@@ -86,6 +86,14 @@ impl World {
     }
 }
 
+impl BuildRef for World {
+    fn build_ref(self) -> WorldRef {
+        Rc::new(RefCell::new(self))
+    }
+}
+
+pub type WorldRef = Rc<RefCell<World>>;
+
 impl fmt::Debug for World {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("World")

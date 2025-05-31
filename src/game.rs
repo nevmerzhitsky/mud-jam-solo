@@ -1,5 +1,5 @@
 use crate::action::WorldAction;
-use crate::area::{World, WorldId};
+use crate::area::{World, WorldId, WorldRef};
 use crate::socium::{Character, CharacterId, CharacterRef};
 use crate::utils::BuildRef;
 use derive_more::From;
@@ -8,7 +8,7 @@ use std::collections::{HashMap, VecDeque};
 use std::rc::Rc;
 
 pub struct Game {
-    worlds: HashMap<WorldId, World>,
+    worlds: HashMap<WorldId, WorldRef>,
     players: HashMap<PlayerId, PlayerRef>,
     actions_queue: VecDeque<WorldAction>,
 }
@@ -24,17 +24,13 @@ impl Game {
 
     pub fn add_world(&mut self, world: World) -> WorldId {
         let id = world.get_id();
-        self.worlds.insert(id, world);
+        self.worlds.insert(id, world.build_ref());
 
         id
     }
 
-    pub fn get_world(&self, id: WorldId) -> Option<&World> {
+    pub fn get_world(&self, id: WorldId) -> Option<&WorldRef> {
         self.worlds.get(&id)
-    }
-
-    pub fn get_world_mut(&mut self, id: WorldId) -> Option<&mut World> {
-        self.worlds.get_mut(&id)
     }
 
     pub fn add_player(&mut self, player: Player) -> PlayerId {
@@ -54,8 +50,8 @@ impl Game {
         player_id: PlayerId,
         character: Character,
     ) {
-        let world = self.get_world_mut(world_id).unwrap();
-        let char_id = world.spawn_character(character);
+        let world = self.get_world(world_id).unwrap();
+        let char_id = world.borrow_mut().spawn_character(character);
 
         self.set_player_character(world_id, player_id, char_id);
     }
@@ -68,7 +64,8 @@ impl Game {
     ) {
         let world = self.get_world(world_id).unwrap();
 
-        let char = world.get_character(char_id).unwrap();
+        let world_ref = world.borrow();
+        let char = world_ref.get_character(char_id).unwrap();
         let char_ref = char.clone();
 
         let player = self.get_player(player_id).unwrap();
@@ -86,7 +83,8 @@ impl Game {
     ) {
         let world = self.get_world(world_id).unwrap();
 
-        let char = world.get_character(char_id).unwrap();
+        let world_ref = world.borrow();
+        let char = world_ref.get_character(char_id).unwrap();
         let player = self.get_player(player_id).unwrap();
 
         player.borrow_mut().unset_main_char();

@@ -33,6 +33,6 @@ fn main() {
         let world_a = game.get_world(world_a_id).unwrap();
         // Execute a user action
         let command = action::ask_command_as_action();
-        command.execute(&world_a, 1);
+        command.execute(world_a, 1);
     }
 }
