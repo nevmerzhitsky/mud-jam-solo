@@ -1,13 +1,14 @@
+use crate::area::{MoveDirection, RoomExit, WorldRef};
+use crate::game::{Game, PlayerId};
 use std::io;
-
-use crate::area::WorldRef;
+use std::ops::Deref;
 
 // ----------------------------------------------------------------------------------------------------
 // Commands via traits
 // ----------------------------------------------------------------------------------------------------
 
 pub trait CharAction {
-    fn execute(&self, w: &WorldRef, subject_id: u32);
+    fn execute(&self, game: &Game, subject_id: PlayerId);
 }
 
 #[derive(Debug)]
@@ -26,41 +27,112 @@ pub struct MoveNorth {}
 pub struct MoveSouth {}
 
 #[derive(Debug)]
+pub struct MoveWest {}
+
+#[derive(Debug)]
+pub struct MoveEast {}
+
+#[derive(Debug)]
+pub struct MoveUp {}
+
+#[derive(Debug)]
+pub struct MoveDown {}
+
+#[derive(Debug)]
 pub struct Say {
     params: Vec<String>,
 }
 
 impl CharAction for UnknownCommand {
-    fn execute(&self, _w: &WorldRef, _subject_id: u32) {
+    fn execute(&self, _game: &Game, _subject_id: PlayerId) {
         println!("Unknown command")
     }
 }
 
 impl CharAction for Empty {
-    fn execute(&self, _w: &WorldRef, _subject_id: u32) {}
+    fn execute(&self, _game: &Game, _subject_id: PlayerId) {}
 }
 
 impl CharAction for Quit {
-    fn execute(&self, _w: &WorldRef, _subject_id: u32) {
+    fn execute(&self, _game: &Game, _subject_id: PlayerId) {
         panic!("You decided to quit")
     }
 }
 
 impl CharAction for MoveNorth {
-    fn execute(&self, _w: &WorldRef, subject_id: u32) {
-        println!("#{:?} moving to the north...", subject_id);
+    fn execute(&self, game: &Game, subject_id: PlayerId) {
+        move_to_direction(game, subject_id, MoveDirection::North);
     }
 }
 
 impl CharAction for MoveSouth {
-    fn execute(&self, _w: &WorldRef, subject_id: u32) {
-        println!("#{:?} moving to the south...", subject_id);
+    fn execute(&self, game: &Game, subject_id: PlayerId) {
+        move_to_direction(game, subject_id, MoveDirection::South);
     }
 }
 
+impl CharAction for MoveWest {
+    fn execute(&self, game: &Game, subject_id: PlayerId) {
+        move_to_direction(game, subject_id, MoveDirection::West);
+    }
+}
+
+impl CharAction for MoveEast {
+    fn execute(&self, game: &Game, subject_id: PlayerId) {
+        move_to_direction(game, subject_id, MoveDirection::East);
+    }
+}
+
+impl CharAction for MoveUp {
+    fn execute(&self, game: &Game, subject_id: PlayerId) {
+        move_to_direction(game, subject_id, MoveDirection::Up);
+    }
+}
+
+impl CharAction for MoveDown {
+    fn execute(&self, game: &Game, subject_id: PlayerId) {
+        move_to_direction(game, subject_id, MoveDirection::Down);
+    }
+}
+
+
 impl CharAction for Say {
-    fn execute(&self, _w: &WorldRef, _subject_id: u32) {
+    fn execute(&self, _game: &Game, _subject_id: PlayerId) {
         println!("SAY: {:?}", self.params);
+    }
+}
+
+fn move_to_direction(game: &Game, subject_id: PlayerId, direction: MoveDirection) {
+    let player = game.get_player(subject_id).unwrap();
+    let player_ref = player.borrow();
+    let char = player_ref.get_main_char();
+
+    if char.is_none() {
+        println!("You have no physical body!");
+        return;
+    }
+
+    let Some(char) = char else { unreachable!() };
+    let char_ref = char.borrow();
+
+    let current_room = char_ref.get_current_room();
+
+    if current_room.is_none() {
+        println!("You are nowhere and cannot step!");
+        return;
+    }
+
+    let Some(current_room) = current_room else { unreachable!() };
+
+    match current_room.get_exit(&direction).borrow().deref() {
+        RoomExit::DeadEnd => {
+            println!("You cannot go this way!");
+        },
+        RoomExit::Pathway(wr) => {
+            println!("${:?} moving {:?}...", subject_id, direction);
+            // TODO create action
+            // TODO queue action
+        },
     }
 }
 
@@ -77,10 +149,10 @@ pub fn ask_command_as_action() -> Box<dyn CharAction> {
         Err(error) => println!("error: {error}"),
     }
 
-    command_to_action(input)
+    command_to_character_action(input)
 }
 
-fn command_to_action(input: String) -> Box<dyn CharAction> {
+fn command_to_character_action(input: String) -> Box<dyn CharAction> {
     let mut words = input.split_whitespace();
     let command = words.next().unwrap_or("").to_ascii_lowercase();
     let params: Vec<String> = words.map(|m| m.to_string()).collect();
@@ -94,6 +166,10 @@ fn command_to_action(input: String) -> Box<dyn CharAction> {
         "quit" => Box::new(Quit {}),
         "north" => Box::new(MoveNorth {}),
         "south" => Box::new(MoveSouth {}),
+        "west" => Box::new(MoveWest {}),
+        "east" => Box::new(MoveEast {}),
+        "up" => Box::new(MoveUp {}),
+        "down" => Box::new(MoveDown {}),
         "say" => Box::new(Say { params }),
         _ => Box::new(UnknownCommand {}),
     }
@@ -109,6 +185,10 @@ pub enum Command {
     Quit,
     MoveNorth,
     MoveSouth,
+    MoveWest,
+    MoveEast,
+    MoveUp,
+    MoveDown,
     Say(Vec<String>),
 }
 
@@ -121,6 +201,10 @@ impl Command {
             Command::Quit => println!("q"),
             Command::MoveNorth => println!("mn"),
             Command::MoveSouth => println!("ms"),
+            Command::MoveWest => println!("mw"),
+            Command::MoveEast => println!("me"),
+            Command::MoveUp => println!("mu"),
+            Command::MoveDown => println!("md"),
             Command::Say(params) => println!("s: {:?}", params),
         }
     }
@@ -156,7 +240,17 @@ fn command_to_enum(input: String) -> Command {
         "quit" => Command::Quit,
         "north" => Command::MoveNorth,
         "south" => Command::MoveSouth,
+        "west" => Command::MoveWest,
+        "east" => Command::MoveEast,
+        "up" => Command::MoveUp,
+        "down" => Command::MoveDown,
         "say" => Command::Say(params),
         _ => Command::UnknownCommand,
     }
 }
+
+// ----------------------------------------------------------------------------------------------------
+// Actions
+// ----------------------------------------------------------------------------------------------------
+
+pub enum WorldAction {}

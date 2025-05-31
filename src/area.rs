@@ -135,8 +135,19 @@ impl Room {
         }
     }
 
-    fn get_id(&self) -> RoomId {
+    pub fn get_id(&self) -> RoomId {
         self.id
+    }
+
+    pub fn get_exit(&self, direction: &MoveDirection) -> &RefCell<RoomExit> {
+        match direction {
+            MoveDirection::North => &self.north_exit,
+            MoveDirection::South => &self.south_exit,
+            MoveDirection::East => &self.east_exit,
+            MoveDirection::West => &self.west_exit,
+            MoveDirection::Up => &self.up_exit,
+            MoveDirection::Down => &self.down_exit,
+        }
     }
 }
 
@@ -172,4 +183,14 @@ impl fmt::Debug for Room {
             get_exit_caption(&self.down_exit)
         )
     }
+}
+
+#[derive(Debug)]
+pub enum MoveDirection {
+    North,
+    South,
+    East,
+    West,
+    Up,
+    Down,
 }
