@@ -1,7 +1,7 @@
 use crate::action::GameAction;
 use crate::area::{MoveDirection, Room, RoomId, World, WorldId, WorldRef};
 use crate::socium::{Character, CharacterId, CharacterRef};
-use crate::utils::BuildRef;
+use crate::utils::{none_or_panic, BuildRef};
 use derive_more::From;
 use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
@@ -25,7 +25,10 @@ impl Game {
 
     pub fn add_world(&mut self, world: World) -> WorldId {
         let id = world.get_id();
-        self.worlds.insert(id, world.build_ref());
+        none_or_panic(
+            self.worlds.insert(id, world.build_ref()),
+            "World already exists",
+        );
 
         id
     }
@@ -36,7 +39,10 @@ impl Game {
 
     pub fn add_player(&mut self, player: Player) -> PlayerId {
         let id = player.get_id();
-        self.players.insert(id, player.build_ref());
+        none_or_panic(
+            self.players.insert(id, player.build_ref()),
+            "Player already exists",
+        );
 
         id
     }

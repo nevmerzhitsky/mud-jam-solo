@@ -6,7 +6,7 @@ use std::ops::Deref;
 use std::rc::{Rc, Weak};
 
 use crate::socium::{Character, CharacterId, CharacterRef};
-use crate::utils::BuildRef;
+use crate::utils::{none_or_panic, BuildRef};
 
 pub trait Entity {}
 
@@ -40,7 +40,10 @@ impl World {
 
     pub fn add_character(&mut self, char: Character) -> CharacterId {
         let id = char.get_id();
-        self.characters.insert(id, char.build_ref());
+        none_or_panic(
+            self.characters.insert(id, char.build_ref()),
+            "Character already exists",
+        );
 
         id
     }
