@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::area::Room;
+use crate::game::PlayerRef;
 use crate::utils::BuildRef;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, From)]
@@ -68,55 +69,3 @@ impl BuildRef for Character {
 }
 
 pub type CharacterRef = Rc<RefCell<Character>>;
-
-// ----------------------------------------------------------------------------------------------------
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, From)]
-pub struct PlayerId(u32);
-
-#[derive(Debug)]
-pub struct Player {
-    id: PlayerId,
-    main_char: Option<CharacterRef>,
-}
-
-impl Player {
-    pub fn new(id: PlayerId) -> Self {
-        Self {
-            id,
-            main_char: None,
-        }
-    }
-
-    pub fn get_id(&self) -> PlayerId {
-        self.id
-    }
-
-    pub fn get_main_char(&self) -> &Option<CharacterRef> {
-        &self.main_char
-    }
-
-    pub fn set_main_char(&mut self, char: CharacterRef) {
-        self.main_char = Some(char);
-    }
-
-    pub fn unset_main_char(&mut self) {
-        self.main_char = None;
-    }
-}
-
-impl PartialEq for Player {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-    }
-}
-
-impl Eq for Player {}
-
-impl BuildRef for Player {
-    fn build_ref(self) -> PlayerRef {
-        Rc::new(RefCell::new(self))
-    }
-}
-
-pub type PlayerRef = Rc<RefCell<Player>>;

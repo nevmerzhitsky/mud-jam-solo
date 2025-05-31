@@ -5,8 +5,8 @@ mod socium;
 mod utils;
 
 use crate::area::WorldId;
-use crate::game::Game;
-use crate::socium::{Character, CharacterId, Player, PlayerId};
+use crate::game::{Game, Player, PlayerId};
+use crate::socium::{Character, CharacterId};
 
 fn main() {
     let mut game = Game::new();

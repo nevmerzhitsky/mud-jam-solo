@@ -1,9 +1,11 @@
-use std::collections::{HashMap, VecDeque};
-
 use crate::action::WorldAction;
 use crate::area::{World, WorldId};
-use crate::socium::{Character, CharacterId, Player, PlayerId, PlayerRef};
+use crate::socium::{Character, CharacterId, CharacterRef};
 use crate::utils::BuildRef;
+use derive_more::From;
+use std::cell::RefCell;
+use std::collections::{HashMap, VecDeque};
+use std::rc::Rc;
 
 pub struct Game {
     worlds: HashMap<WorldId, World>,
@@ -99,3 +101,55 @@ impl Game {
         //for action in self.actions_queue.drain(..) {}
     }
 }
+
+// ----------------------------------------------------------------------------------------------------
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, From)]
+pub struct PlayerId(u32);
+
+#[derive(Debug)]
+pub struct Player {
+    id: PlayerId,
+    main_char: Option<CharacterRef>,
+}
+
+impl Player {
+    pub fn new(id: PlayerId) -> Self {
+        Self {
+            id,
+            main_char: None,
+        }
+    }
+
+    pub fn get_id(&self) -> PlayerId {
+        self.id
+    }
+
+    pub fn get_main_char(&self) -> &Option<CharacterRef> {
+        &self.main_char
+    }
+
+    pub fn set_main_char(&mut self, char: CharacterRef) {
+        self.main_char = Some(char);
+    }
+
+    pub fn unset_main_char(&mut self) {
+        self.main_char = None;
+    }
+}
+
+impl PartialEq for Player {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for Player {}
+
+impl BuildRef for Player {
+    fn build_ref(self) -> PlayerRef {
+        Rc::new(RefCell::new(self))
+    }
+}
+
+pub type PlayerRef = Rc<RefCell<Player>>;
