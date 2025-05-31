@@ -1,14 +1,16 @@
-use crate::area::{MoveDirection, RoomExit, WorldRef};
+use crate::area::{MoveDirection, Room, RoomExit, WorldRef};
 use crate::game::{Game, PlayerId};
+use crate::socium::CharacterRef;
 use std::io;
 use std::ops::Deref;
+use std::rc::Rc;
 
 // ----------------------------------------------------------------------------------------------------
 // Commands via traits
 // ----------------------------------------------------------------------------------------------------
 
 pub trait CharAction {
-    fn execute(&self, game: &Game, subject_id: PlayerId);
+    fn execute(&self, game: &mut Game, subject_id: PlayerId);
 }
 
 #[derive(Debug)]
@@ -44,76 +46,82 @@ pub struct Say {
 }
 
 impl CharAction for UnknownCommand {
-    fn execute(&self, _game: &Game, _subject_id: PlayerId) {
+    fn execute(&self, _game: &mut Game, _subject_id: PlayerId) {
         println!("Unknown command")
     }
 }
 
 impl CharAction for Empty {
-    fn execute(&self, _game: &Game, _subject_id: PlayerId) {}
+    fn execute(&self, _game: &mut Game, _subject_id: PlayerId) {}
 }
 
 impl CharAction for Quit {
-    fn execute(&self, _game: &Game, _subject_id: PlayerId) {
+    fn execute(&self, _game: &mut Game, _subject_id: PlayerId) {
         panic!("You decided to quit")
     }
 }
 
 impl CharAction for MoveNorth {
-    fn execute(&self, game: &Game, subject_id: PlayerId) {
+    fn execute(&self, game: &mut Game, subject_id: PlayerId) {
         move_to_direction(game, subject_id, MoveDirection::North);
     }
 }
 
 impl CharAction for MoveSouth {
-    fn execute(&self, game: &Game, subject_id: PlayerId) {
+    fn execute(&self, game: &mut Game, subject_id: PlayerId) {
         move_to_direction(game, subject_id, MoveDirection::South);
     }
 }
 
 impl CharAction for MoveWest {
-    fn execute(&self, game: &Game, subject_id: PlayerId) {
+    fn execute(&self, game: &mut Game, subject_id: PlayerId) {
         move_to_direction(game, subject_id, MoveDirection::West);
     }
 }
 
 impl CharAction for MoveEast {
-    fn execute(&self, game: &Game, subject_id: PlayerId) {
+    fn execute(&self, game: &mut Game, subject_id: PlayerId) {
         move_to_direction(game, subject_id, MoveDirection::East);
     }
 }
 
 impl CharAction for MoveUp {
-    fn execute(&self, game: &Game, subject_id: PlayerId) {
+    fn execute(&self, game: &mut Game, subject_id: PlayerId) {
         move_to_direction(game, subject_id, MoveDirection::Up);
     }
 }
 
 impl CharAction for MoveDown {
-    fn execute(&self, game: &Game, subject_id: PlayerId) {
+    fn execute(&self, game: &mut Game, subject_id: PlayerId) {
         move_to_direction(game, subject_id, MoveDirection::Down);
     }
 }
 
 
 impl CharAction for Say {
-    fn execute(&self, _game: &Game, _subject_id: PlayerId) {
+    fn execute(&self, _game: &mut Game, _subject_id: PlayerId) {
         println!("SAY: {:?}", self.params);
     }
 }
 
-fn move_to_direction(game: &Game, subject_id: PlayerId, direction: MoveDirection) {
-    let player = game.get_player(subject_id).unwrap();
-    let player_ref = player.borrow();
-    let char = player_ref.get_main_char();
+fn move_to_direction(game: &mut Game, subject_id: PlayerId, direction: MoveDirection) {
+    let free_char;
 
-    if char.is_none() {
-        println!("You have no physical body!");
-        return;
+    {
+        let player = game.get_player(subject_id).unwrap();
+        let player_ref = player.borrow();
+        let char = player_ref.get_main_char();
+
+        if char.is_none() {
+            println!("You have no physical body!");
+            return;
+        }
+
+        let Some(char) = char else { unreachable!() };
+        free_char = char.clone();
     }
 
-    let Some(char) = char else { unreachable!() };
-    let char_ref = char.borrow();
+    let char_ref = free_char.borrow();
 
     let current_room = char_ref.get_current_room();
 
@@ -128,10 +136,22 @@ fn move_to_direction(game: &Game, subject_id: PlayerId, direction: MoveDirection
         RoomExit::DeadEnd => {
             println!("You cannot go this way!");
         },
-        RoomExit::Pathway(wr) => {
-            println!("${:?} moving {:?}...", subject_id, direction);
-            // TODO create action
-            // TODO queue action
+        RoomExit::Pathway(weak_to_room) => {
+            match weak_to_room.upgrade() {
+                None => println!("The game is failed to moving you :("),
+                Some(to_room) => {
+                    let world = current_room.get_world().clone();
+                    let world_ref = world.borrow();
+                    let char = world_ref.get_character(char_ref.get_id()).unwrap();
+
+                    println!("${:?} moving {:?}...", subject_id, direction);
+                    game.queue_action(GameAction::WalkFromTo {
+                        who: char.clone(),
+                        from: current_room.clone(),
+                        to: to_room.clone(),
+                    });
+                }
+            }
         },
     }
 }
@@ -253,4 +273,6 @@ fn command_to_enum(input: String) -> Command {
 // Actions
 // ----------------------------------------------------------------------------------------------------
 
-pub enum WorldAction {}
+pub enum GameAction {
+    WalkFromTo { who: CharacterRef, from: Rc<Room>, to: Rc<Room> },
+}

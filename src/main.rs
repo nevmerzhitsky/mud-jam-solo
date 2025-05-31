@@ -11,11 +11,11 @@ use crate::socium::{Character, CharacterId};
 fn main() {
     let mut game = Game::new();
 
-    let mut world_a = area::World::new(WorldId::from(1), String::from("First world"));
-    world_a.fill_area();
-    println!(">>> world = {:#?}", world_a);
+    let world_a = area::World::new(WorldId::from(1), String::from("First world"));
 
     let world_a_id = game.add_world(world_a);
+    game.fill_world(world_a_id);
+    println!(">>> world = {:#?}", game.get_world(world_a_id).unwrap());
 
     let char_a = Character::new(CharacterId::from(11));
     let player_a = Player::new(PlayerId::from(21));
@@ -26,12 +26,13 @@ fn main() {
 
     let player_a = game.get_player(player_a_id).unwrap();
     println!(">>> player_a after SPAWN = {:#?}", player_a);
+    let player_a = player_a.borrow().get_id();
 
     loop {
         // Process events
 
         // Execute a user action
         let command = action::ask_command_as_action();
-        command.execute(&game, player_a.borrow().get_id());
+        command.execute(&mut game, player_a);
     }
 }

@@ -1,5 +1,5 @@
-use crate::action::WorldAction;
-use crate::area::{World, WorldId, WorldRef};
+use crate::action::GameAction;
+use crate::area::{MoveDirection, Room, RoomId, World, WorldId, WorldRef};
 use crate::socium::{Character, CharacterId, CharacterRef};
 use crate::utils::BuildRef;
 use derive_more::From;
@@ -10,7 +10,7 @@ use std::rc::Rc;
 pub struct Game {
     worlds: HashMap<WorldId, WorldRef>,
     players: HashMap<PlayerId, PlayerRef>,
-    actions_queue: VecDeque<WorldAction>,
+    actions_queue: VecDeque<GameAction>,
 }
 
 impl Game {
@@ -42,6 +42,24 @@ impl Game {
 
     pub fn get_player(&self, id: PlayerId) -> Option<&PlayerRef> {
         self.players.get(&id)
+    }
+
+    pub fn fill_world(&mut self, world_id: WorldId) {
+        let world = self.get_world(world_id).unwrap();
+        let room1 = Rc::new(Room::new_in_void(RoomId::from(1), world.clone()));
+        let room2 = Rc::new(Room::new_in_void(RoomId::from(2), world.clone()));
+
+        room1.set_exit(&MoveDirection::North, room2.clone());
+        room1.set_exit(&MoveDirection::South, room2.clone());
+        room1.set_exit(&MoveDirection::East, room1.clone());
+
+        room2.set_exit(&MoveDirection::North, room1.clone());
+        room2.set_exit(&MoveDirection::South, room1.clone());
+        room2.set_exit(&MoveDirection::West, room2.clone());
+
+        let mut world_mut = world.borrow_mut();
+        world_mut.add_room(room1);
+        world_mut.add_room(room2);
     }
 
     pub fn spawn_player_character(
@@ -91,7 +109,7 @@ impl Game {
         char.borrow_mut().unset_owner();
     }
 
-    pub fn queue_action(&mut self, action: WorldAction) {
+    pub fn queue_action(&mut self, action: GameAction) {
         self.actions_queue.push_back(action);
     }
 

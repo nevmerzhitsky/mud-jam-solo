@@ -49,20 +49,8 @@ impl World {
         self.characters.get(&id)
     }
 
-    pub fn fill_area(&mut self) {
-        let room1 = Rc::new(Room::new_in_void(RoomId::from(1)));
-        let room2 = Rc::new(Room::new_in_void(RoomId::from(2)));
-
-        *room1.north_exit.borrow_mut() = RoomExit::Pathway(Rc::downgrade(&room2));
-        *room1.south_exit.borrow_mut() = RoomExit::Pathway(Rc::downgrade(&room2));
-        *room1.east_exit.borrow_mut() = RoomExit::Pathway(Rc::downgrade(&room1));
-
-        *room2.north_exit.borrow_mut() = RoomExit::Pathway(Rc::downgrade(&room1));
-        *room2.south_exit.borrow_mut() = RoomExit::Pathway(Rc::downgrade(&room1));
-        *room2.west_exit.borrow_mut() = RoomExit::Pathway(Rc::downgrade(&room2));
-
-        self.area.push(room1);
-        self.area.push(room2);
+    pub fn add_room(&mut self, room: Rc<Room>) {
+        self.area.push(room);
     }
 
     pub fn get_any_room(&self) -> Rc<Room> {
@@ -114,6 +102,7 @@ pub struct RoomId(u32);
 
 pub struct Room {
     id: RoomId,
+    world: WorldRef,
     north_exit: RefCell<RoomExit>,
     south_exit: RefCell<RoomExit>,
     west_exit: RefCell<RoomExit>,
@@ -123,9 +112,10 @@ pub struct Room {
 }
 
 impl Room {
-    pub fn new_in_void(id: RoomId) -> Room {
+    pub fn new_in_void(id: RoomId, world: WorldRef) -> Room {
         Room {
             id,
+            world,
             north_exit: RefCell::new(RoomExit::DeadEnd),
             south_exit: RefCell::new(RoomExit::DeadEnd),
             east_exit: RefCell::new(RoomExit::DeadEnd),
@@ -139,6 +129,10 @@ impl Room {
         self.id
     }
 
+    pub fn get_world(&self) -> &WorldRef {
+        &self.world
+    }
+
     pub fn get_exit(&self, direction: &MoveDirection) -> &RefCell<RoomExit> {
         match direction {
             MoveDirection::North => &self.north_exit,
@@ -148,6 +142,18 @@ impl Room {
             MoveDirection::Up => &self.up_exit,
             MoveDirection::Down => &self.down_exit,
         }
+    }
+
+    pub fn set_exit(&self, direction: &MoveDirection, to_room: Rc<Room>) {
+        let exit_ref = self.get_exit(direction);
+
+        *exit_ref.borrow_mut() = RoomExit::Pathway(Rc::downgrade(&to_room));
+    }
+
+    pub fn set_dead_end(&self, direction: &MoveDirection) {
+        let exit_ref = self.get_exit(direction);
+
+        *exit_ref.borrow_mut() = RoomExit::DeadEnd;
     }
 }
 
