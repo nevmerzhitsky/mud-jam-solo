@@ -1,5 +1,6 @@
 use derive_more::From;
 use std::cell::RefCell;
+use std::fmt;
 use std::rc::Rc;
 
 use crate::area::Room;
@@ -9,7 +10,6 @@ use crate::utils::BuildRef;
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, From)]
 pub struct CharacterId(u32);
 
-#[derive(Debug)]
 pub struct Character {
     id: CharacterId,
     owner: Option<PlayerRef>,
@@ -65,6 +65,16 @@ impl Eq for Character {}
 impl BuildRef for Character {
     fn build_ref(self) -> CharacterRef {
         Rc::new(RefCell::new(self))
+    }
+}
+
+impl fmt::Debug for Character {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Character")
+            .field("id", &self.id)
+            .field("main_char", &self.owner.as_ref().map(|char| char.borrow().get_id()))
+            .field("current_room", &self.current_room)
+            .finish()
     }
 }
 

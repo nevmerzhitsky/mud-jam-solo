@@ -5,6 +5,7 @@ use crate::utils::BuildRef;
 use derive_more::From;
 use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
+use std::fmt;
 use std::rc::Rc;
 
 pub struct Game {
@@ -123,7 +124,6 @@ impl Game {
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, From)]
 pub struct PlayerId(u32);
 
-#[derive(Debug)]
 pub struct Player {
     id: PlayerId,
     main_char: Option<CharacterRef>,
@@ -165,6 +165,15 @@ impl Eq for Player {}
 impl BuildRef for Player {
     fn build_ref(self) -> PlayerRef {
         Rc::new(RefCell::new(self))
+    }
+}
+
+impl fmt::Debug for Player {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Player")
+            .field("id", &self.id)
+            .field("main_char", &self.main_char.as_ref().map(|char| char.borrow().get_id()))
+            .finish()
     }
 }
 
